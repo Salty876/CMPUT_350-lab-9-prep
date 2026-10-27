@@ -3,6 +3,7 @@
 
 #include "camera.h"
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
 
 constexpr size_t WINDOW_WIDTH = 1280;
 constexpr size_t WINDOW_HEIGHT = 720;
@@ -141,7 +142,36 @@ int main() {
         //
         // Use SOFT_LIMIT_PERCENT and HARD_LIMIT_PERCENT to parameterize the green and red
         // line positions.
-        camera.setCameraCenter({player.position.x, WINDOW_HEIGHT * 0.5f});
+        sf::Vector2f playerPosWin = camera.worldToWindow(player.position);
+
+        // The zones
+        float leftHard = HARD_LIMIT_PERCENT * windowSize.x;
+        float rightHard = (1 - HARD_LIMIT_PERCENT) * windowSize.x;
+
+        float leftSoft = SOFT_LIMIT_PERCENT * windowSize.x;
+        float rightSoft = (1 - SOFT_LIMIT_PERCENT) * windowSize.x;
+
+        // Exclusion zones
+        if (playerPosWin.x < leftHard) {
+            // Move camera
+            float excess = playerPosWin.x - leftHard;
+            camera.translateWindow({excess, 0.f});
+        }
+        else if (playerPosWin.x > rightHard) {
+            // move camera
+            float excess = playerPosWin.x - rightHard;
+            camera.translateWindow({excess, 0.f});
+        }
+        else if (playerPosWin.x < leftSoft){
+            // move camera
+            float excess = playerPosWin.x - leftSoft;
+            camera.translateWindow({excess * SOFT_CAMERA_ALPHA, 0.f});
+        }
+        else if (playerPosWin.x > rightSoft) {
+            // move camera
+            float excess = playerPosWin.x - rightSoft;
+            camera.translateWindow({excess * SOFT_CAMERA_ALPHA, 0.f});
+        }
 
         worldView.setCenter(camera.getCameraCenter());
         window.clear(sf::Color::Black);
